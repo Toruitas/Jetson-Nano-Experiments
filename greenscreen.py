@@ -14,10 +14,10 @@ DEPTH_H = 480
 COLOR_W = 848
 COLOR_H = 480
 config.enable_stream(rs.stream.depth, DEPTH_W, DEPTH_H, rs.format.z16, 30)
-config.enable_stream(rs.stream.color, COLOR_W, COLOR_H, rs.format.rgb8, 30)
+config.enable_stream(rs.stream.color, COLOR_W, COLOR_H, rs.format.bgr8, 30)
 
 # Set green screen background.
-GREENSCREEN_DEPTH = 1.5  # in meters
+GREENSCREEN_DEPTH = 3  # in meters
 bg_img_r = np.full((COLOR_H,COLOR_W),0)
 bg_img_g = np.full((COLOR_H,COLOR_W),255)
 bg_img_b = np.full((COLOR_H,COLOR_W),0)

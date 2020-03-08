@@ -10,12 +10,12 @@ net = cv2.dnn.readNetFromCaffe("./MobileNetSSD_deploy.prototxt.txt", "./MobileNe
 # Configure depth and color streams
 pipeline = rs.pipeline()
 config = rs.config()
-DEPTH_W = 1280
-DEPTH_H = 720
-COLOR_W = 1920
-COLOR_H = 1080
+DEPTH_W = 848
+DEPTH_H = 480
+COLOR_W = 848
+COLOR_H = 480
 config.enable_stream(rs.stream.depth, DEPTH_W, DEPTH_H, rs.format.z16, 30)
-config.enable_stream(rs.stream.color, COLOR_W, COLOR_H, rs.format.rgb8, 30)
+config.enable_stream(rs.stream.color, COLOR_W, COLOR_H, rs.format.bgr8, 30)
 
 # Start streaming
 pipeline.start(config)
@@ -33,6 +33,9 @@ try:
         # Convert images to numpy arrays
         depth_image = np.asanyarray(depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
+
+        # color_image = color_image[:,::-1,:]
+        # depth_image = depth_image[:,::-1]
 
         height, width = color_image.shape[:2]
         expected = 300
@@ -125,11 +128,13 @@ try:
                                      startY: endY,
                                      startX: endX
                                  ]
-
                     blurred_subimg = cv2.GaussianBlur(subimg,(99,99),0)
-
                     color_image[startY: endY, startX: endX] = blurred_subimg
+                    cv2.rectangle(color_image, (startX, startY), (endX, endY), COLORS[idx], 2)
+                    cv2.putText(color_image, label, (startX, startY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
 
+        color_image = color_image[:, ::-1, :]
+        depth_image = depth_image[:, ::-1]
 
 
                     # cv2.imshow("Blurred Image",color_image)
@@ -174,7 +179,7 @@ try:
             # images = np.hstack((color_image, depth_colormap))
 
         # Show images
-        cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow('RealSense', cv2.WINDOW_NORMAL) # WINDOW_AUTOSIZE
         cv2.imshow('RealSense', color_image)
 
         key = cv2.waitKey(1) & 0xFF
