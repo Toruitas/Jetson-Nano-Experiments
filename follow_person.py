@@ -13,18 +13,6 @@ def nothing(x):
     """trackbar always wants a fn called, so need a dummy"""
     pass
 
-# build track bars
-cv2.namedWindow('Trackbars')
-cv2.moveWindow('Trackbars', 1320, 0)
-cv2.createTrackbar('hue-low', 'Trackbars', 137, 179, nothing)  # need 6 trackbars. Low, high values for hue, saturation, and value.
-cv2.createTrackbar('hue-high', 'Trackbars', 179, 179, nothing)  # name, window to put in, initial value, max value, callback fn
-cv2.createTrackbar('hue2-low', 'Trackbars', 0, 179, nothing)  # need 6 trackbars. Low, high values for hue, saturation, and value.
-cv2.createTrackbar('hue2-high', 'Trackbars', 14, 179, nothing)  # name, window to put in, initial value, max value, callback fn
-cv2.createTrackbar('sat-low', 'Trackbars', 140, 255, nothing)  
-cv2.createTrackbar('sat-high', 'Trackbars', 255, 255, nothing)
-cv2.createTrackbar('val-low', 'Trackbars',111, 255, nothing)
-cv2.createTrackbar('val-high', 'Trackbars',255, 255, nothing)
-
 disp_w = 640
 disp_h = 480
 flip = 2  # a param on rpi cam. Else comes out upside down
@@ -43,7 +31,8 @@ kit.servo[1].angle = tilt
 # this launches gstreamer on the camera 
 # 21 fps
 # opencv likes bgr
-cam_set ='nvarguscamerasrc !  video/x-raw(memory:NVMM), width=3264, height=2464, format=NV12, framerate=21/1 ! nvvidconv flip-method='+str(flip)+' ! video/x-raw, width='+str(disp_w)+', height='+str(disp_h)+', format=BGRx ! videoconvert ! video/x-raw, format=BGR ! appsink'
+cam_set ='nvarguscamerasrc !  video/x-raw(memory:NVMM), width=3264, height=2464, format=NV12, framerate=21/1 ! nvvidconv flip-method='+str(flip)+' ! video/x-raw, width='+str(disp_w)+', height='+str(disp_h)+', format=BGRx ! videoconvert ! video/x-raw, format=BGR ! appsink max-buffers=1 drop=true'
+
 
 cam = cv2.VideoCapture(cam_set)
 width = cam.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -156,18 +145,18 @@ while True:
 
         ctr_obj = (ctr_x, ctr_y)
 
+        # Draw a line between center of object and center of frame, where we want the object
         cv2.circle(frame,(ctr_x, ctr_y), 2, (255,0,0), 1)
-
         cv2.circle(frame,ctr_frame, 2, (255,0,0), 1)
-
         cv2.line(frame, (ctr_x, ctr_y),ctr_frame, (255,0,0),1)
         
-
         # distance from center of bounding box
         error = np.linalg.norm(np.array(ctr_obj) - np.array(ctr_frame))
         margin = 10
 
-        if error > 50:
+        if error >= 100:
+            step = 10
+        elif error < 100 and error >= 50:
             step = 1
         else:
             step = 0.1
